@@ -1,15 +1,22 @@
-// playwright.config.js
-import { defineConfig } from '@playwright/test';
+import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
-  testDir: './tests',
-  timeout: 30 * 1000,
+  testDir: './tests',             // discover both ui/ and api/
+  timeout: 30_000,
+  reporter: [
+    ['list'],                     // terminal output
+    ['html'],                     // built-in HTML report
+    ['monocart-reporter', {       // bonus: monocart
+      outputFile: 'monocart-report/index.html',
+      name: 'Capitec Assessment Report'
+    }]
+  ],
   use: {
     baseURL: 'https://www.saucedemo.com',
-    headless: false,                 // keep false so you can SEE the browser while learning
-    screenshot: 'only-on-failure',
-    video: 'retain-on-failure',
-    trace: 'on-first-retry',
+    headless: true,
+    trace: 'on-first-retry'
   },
-  reporter: [['html', { outputFolder: 'playwright-report' }]],
+  projects: [
+    { name: 'chromium', use: { ...devices['Desktop Chrome'] } }
+  ]
 });

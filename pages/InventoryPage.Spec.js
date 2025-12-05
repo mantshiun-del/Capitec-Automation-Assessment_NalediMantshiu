@@ -1,23 +1,10 @@
-class InventoryPage {
+export default class InventoryPage {
   constructor(page) {
     this.page = page;
-    this.inventoryList = page.locator('.inventory_list');
-    this.cartIcon = page.locator('.shopping_cart_link');
-  }
-
-  async addItemByName(name) {
-    const item = this.page.locator('.inventory_item').filter({ hasText: name });
-    await item.locator('text=Add to cart').click();
-  }
-
-  async removeItemByName(name) {
-    const item = this.page.locator('.inventory_item').filter({ hasText: name });
-    await item.locator('text=Remove').click();
-  }
-
-  async gotoCart() {
-    await this.cartIcon.click();
+    this.title = page.locator('.title');
+    this.items = page.locator('.inventory_item');
+    this.addToCartButtons = page.locator('[data-test^="add-to-cart"]');
+    this.cartBadge = page.locator('.shopping_cart_badge');
+    this.cartLink = page.locator('.shopping_cart_link');
   }
 }
-
-module.exports = { InventoryPage };

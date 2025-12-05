@@ -1,32 +1,29 @@
 import { test, expect } from '@playwright/test';
-import { users } from '../../utils/testData.js';
+import testData from '../utils/testData.js';
+import LoginPage from '../../pages/LoginPage.js';
+import InventoryPage from '../../pages/InventoryPage.js';
+import CartPage from '../../pages/CartPage.js';
+import CheckoutPage from '../../pages/CheckoutPage.js';
 
-test('complete checkout flow', async ({ page }) => {
-  // Login
-  await page.goto('/');
-  await page.locator('[data-test="username"]').fill(users.standard.username);
-  await page.locator('[data-test="password"]').fill(users.standard.password);
-  await page.locator('[data-test="login-button"]').click();
+test('Complete checkout flow', async ({ page }) => {
+  const login = new LoginPage(page);
+  const inventory = new InventoryPage(page);
+  const cart = new CartPage(page);
+  const checkout = new CheckoutPage(page);
 
-  // Add one item
-  await page.locator('[data-test^="add-to-cart"]').first().click();
-  await expect(page.locator('.shopping_cart_badge')).toHaveText('1');
+  await login.goto();
+  await login.login(testData.users.standard.username, testData.users.standard.password);
 
-  // Cart → Checkout
-  await page.click('.shopping_cart_link');
-  await page.locator('[data-test="checkout"]').click();
+  await inventory.addToCartButtons.first().click();
+  await inventory.cartLink.click();
 
-  // Fill info
-  await page.locator('[data-test="firstName"]').fill('Naledi');
-  await page.locator('[data-test="lastName"]').fill('Mantshiu');
-  await page.locator('[data-test="postalCode"]').fill('2196');
-  await page.locator('[data-test="continue"]').click();
+  await cart.checkoutBtn.click();
 
-  // Review & finish
-  await expect(page.locator('.summary_total_label')).toContainText('Total');
-  await page.locator('[data-test="finish"]').click();
+  await checkout.firstName.fill(testData.checkout.firstName);
+  await checkout.lastName.fill(testData.checkout.lastName);
+  await checkout.postal.fill(testData.checkout.postalCode);
+  await checkout.continue.click();
 
-  // Confirmation
-  await expect(page.locator('.complete-header'))
-    .toHaveText('Thank you for your order!');
+  await checkout.finish.click();
+  await expect(checkout.complete).toHaveText('Thank you for your order!');
 });

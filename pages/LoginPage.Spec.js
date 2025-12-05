@@ -1,20 +1,22 @@
-class LoginPage {
+export default class LoginPage {
+  /**
+   * @param {import('@playwright/test').Page} page
+   */
   constructor(page) {
     this.page = page;
-    this.usernameField = page.locator('#user-name');
-    this.passwordField = page.locator('#password');
-    this.loginButton = page.locator('#login-button'); // or [data-test="login-button"]
-    this.errorBanner = page.locator('[data-test="error"]');
+    this.username = page.locator('#user-name');
+    this.password = page.locator('#password');
+    this.loginBtn = page.locator('#login-button');
+    this.error = page.locator('[data-test="error"]');
   }
 
   async goto() {
-    await this.page.goto('https://www.saucedemo.com/');
+    await this.page.goto('/');
   }
 
-  async login(username, password) {
-    await this.usernameField.fill(username);
-    await this.passwordField.fill(password);
-    await this.loginButton.click();
+  async login(u, p) {
+    await this.username.fill(u);
+    await this.password.fill(p);
+    await this.loginBtn.click();
   }
 }
-

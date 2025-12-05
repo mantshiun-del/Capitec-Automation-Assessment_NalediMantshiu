@@ -1,22 +1,15 @@
 {
-  "name": "capitec-automation-assessment_naledimantshiu",
+  "name": "capitec-automation-assessment",
   "version": "1.0.0",
-  "description": "Playwright JS automation: UI (SauceDemo) + API (Restful-Booker)",
   "type": "module",
   "scripts": {
-    "test": "playwright test",
-    "report": "playwright show-report",
-    "test:ui": "playwright test tests/ui",
-    "test:api": "playwright test tests/api"
+    "test": "npx playwright test",
+    "test:ui": "npx playwright test tests/ui",
+    "test:api": "npx playwright test tests/api",
+    "report": "npx playwright show-report"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/mantshiun-del/Capitec-Automation-Assessment_NalediMantshiu.git"
-  },
-  "keywords": ["playwright", "automation", "ui", "api", "saucedemo", "restful-booker"],
-  "author": "Naledi Mantshiu",
-  "license": "MIT",
   "devDependencies": {
-    "@playwright/test": "^1.57.0"
+    "@playwright/test": "^1.48.0",
+    "monocart-reporter": "^2.9.23"
   }
 }

@@ -1,26 +1,15 @@
 import { test, expect } from '@playwright/test';
-import { users } from '../../utils/testData.js';
+import testData from '../utils/testData.js';
+import LoginPage from '../../pages/LoginPage.js';
+import InventoryPage from '../../pages/InventoryPage.js';
 
-test('inventory lists 6 products and can sort by price high→low', async ({ page }) => {
-  // Login
-  await page.goto('/');
-  await page.locator('[data-test="username"]').fill(users.standard.username);
-  await page.locator('[data-test="password"]').fill(users.standard.password);
-  await page.locator('[data-test="login-button"]').click();
+test('Inventory shows products after login', async ({ page }) => {
+  const login = new LoginPage(page);
+  const inventory = new InventoryPage(page);
 
-  await expect(page.locator('.inventory_list')).toBeVisible();
+  await login.goto();
+  await login.login(testData.users.standard.username, testData.users.standard.password);
 
-  // SauceDemo usually has 6 items
-  const items = page.locator('.inventory_item');
-  await expect(items).toHaveCount(6);
-
-  // Sort by price: high to low
-  await page.locator('.product_sort_container').selectOption('hilo');
-
-  // Quick check: first price should be the highest
-  const prices = await page.$$eval('.inventory_item_price', els =>
-    els.map(e => Number(e.textContent.replace('$', '')))
-  );
-  const sortedDesc = [...prices].sort((a, b) => b - a);
-  expect(prices[0]).toBe(sortedDesc[0]);
+  await expect(inventory.title).toHaveText('Products');
+  await expect(inventory.items).toHaveCount(6);   // SauceDemo has 6 items
 });

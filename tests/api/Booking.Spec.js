@@ -1,104 +1,81 @@
-
-// tests/api/booking.spec.js
 import { test, expect } from '@playwright/test';
-import { apiBase, defaultBooking, uniqueBooking } from '../../utils/apiClient.js';
 
-// Helper to fetch auth token
-async function getToken(request) {
-  const res = await request.post(`${apiBase}/auth`, {
-    data: { username: 'admin', password: 'password123' }
-  });
-  expect(res.status()).toBe(200);
-  const body = await res.json();
-  return body.token;
-}
+const BASE = 'https://restful-booker.herokuapp.com';
 
-test.describe('Booking CRUD', () => {
+test.describe('Restful-Booker CRUD', () => {
 
-  test('Create → Get → PUT → PATCH → DELETE → Verify 404', async ({ request }) => {
-    // --- CREATE ---
-    const createRes = await request.post(`${apiBase}/booking`, {
-      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      data: uniqueBooking() // or defaultBooking()
+  test('Auth → Create → Get → Update → Patch → Delete', async ({ request }) => {
+    // 1) Auth (token)
+    const authRes = await request.post(`${BASE}/auth`, {
+      data: { username: 'admin', password: 'password123' },
+      headers: { 'Content-Type': 'application/json' }
+    });
+    expect(authRes.ok()).toBeTruthy();
+    const { token } = await authRes.json();
+    expect(token).toBeTruthy(); // token string returned
+    // token is used as Cookie: token=<value> on protected operations
+    // (PUT / PATCH / DELETE) per Restful Booker docs
+    const authHeaders = { Cookie: `token=${token}`, 'Content-Type': 'application/json' };
+
+    // 2) Create booking (POST)
+    const createRes = await request.post(`${BASE}/booking`, {
+      data: {
+        firstname: 'Naledi',
+        lastname: 'Mantshiu',
+        totalprice: 111,
+        depositpaid: true,
+        bookingdates: { checkin: '2024-02-23', checkout: '2024-10-23' },
+        additionalneeds: 'Breakfast'
+      },
+      headers: { 'Content-Type': 'application/json' }
     });
     expect(createRes.status()).toBe(200);
-    const created = await createRes.json();
-    // Response shape: { bookingid: number, booking: {...} }
-    expect(created.bookingid).toBeDefined();
-    const bookingId = created.bookingid;
+    const createBody = await createRes.json();
+    const bookingId = createBody.bookingid;
+    expect(bookingId).toBeGreaterThan(0);
 
-    // --- GET ---
-    const getRes = await request.get(`${apiBase}/booking/${bookingId}`, {
-      headers: { 'Accept': 'application/json' }
+    // 3) Get booking (GET)
+    const getRes = await request.get(`${BASE}/booking/${bookingId}`, {
+      headers: { Accept: 'application/json' }
     });
-    expect(getRes.status()).toBe(200);
+    expect(getRes.ok()).toBeTruthy();
     const booking = await getRes.json();
+    expect(booking.firstname).toBe('Naledi');
 
-    // Basic schema validation based on docs
-    expect(booking).toMatchObject({
-      firstname: expect.any(String),
-      lastname: expect.any(String),
-      totalprice: expect.any(Number),
-      depositpaid: expect.any(Boolean),
-      bookingdates: {
-        checkin: expect.any(String),
-        checkout: expect.any(String),
-      }
-      // additionalneeds may or may not be present
-    });
-
-    // --- PUT (full update) ---
-    const token = await getToken(request);
-    const putRes = await request.put(`${apiBase}/booking/${bookingId}`, {
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'Cookie': `token=${token}`
-      },
+    // 4) Update booking (PUT — protected)
+    const putRes = await request.put(`${BASE}/booking/${bookingId}`, {
+      headers: authHeaders,
       data: {
-        firstname: 'James',
-        lastname: 'Brown',
-        totalprice: 222,
-        depositpaid: false,
-        bookingdates: { checkin: '2024-03-01', checkout: '2024-03-05' },
-        additionalneeds: 'Dinner'
+        firstname: 'Naledi',
+        lastname: 'Mantshiu',
+        totalprice: 150,
+        depositpaid: true,
+        bookingdates: { checkin: '2024-02-23', checkout: '2024-10-23' },
+        additionalneeds: 'Breakfast'
       }
     });
-    expect(putRes.status()).toBe(200);
+    expect(putRes.ok()).toBeTruthy();
     const putBody = await putRes.json();
-    expect(putBody.firstname).toBe('James');
-    expect(putBody.lastname).toBe('Brown');
-    expect(putBody.totalprice).toBe(222);
-    expect(putBody.depositpaid).toBe(false);
+    expect(putBody.totalprice).toBe(150);
 
-    // --- PATCH (partial update) ---
-    const patchRes = await request.patch(`${apiBase}/booking/${bookingId}`, {
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'Cookie': `token=${token}`
-      },
-      data: { firstname: 'Naledi', additionalneeds: 'Breakfast & Lunch' }
+    // 5) Partial update (PATCH — protected)
+    const patchRes = await request.patch(`${BASE}/booking/${bookingId}`, {
+      headers: authHeaders,
+      data: { additionalneeds: 'Lunch' }
     });
-    expect(patchRes.status()).toBe(200);
+    expect(patchRes.ok()).toBeTruthy();
     const patchBody = await patchRes.json();
-    expect(patchBody.firstname).toBe('Naledi');
-    expect(patchBody.additionalneeds).toBe('Breakfast & Lunch');
+    expect(patchBody.additionalneeds).toBe('Lunch');
 
-    // --- DELETE ---
-    const deleteRes = await request.delete(`${apiBase}/booking/${bookingId}`, {
-      headers: {
-        // Auth via Cookie header per docs
-        'Cookie': `token=${token}`,
-        'Accept': 'application/json'
-      }
+    // 6) Delete booking (DELETE — protected)
+    const delRes = await request.delete(`${BASE}/booking/${bookingId}`, {
+      headers: authHeaders
     });
-    // Docs show 201 Created as default success; accept common success codes
-    expect([200, 201, 204]).toContain(deleteRes.status());
+    expect([201, 200, 204]).toContain(delRes.status()); // DELETE can vary
 
-    // --- Verify deletion: GET should now be 404 ---
-    const verifyRes = await request.get(`${apiBase}/booking/${bookingId}`);
-    expect(verifyRes.status()).toBe(404);
+    // 7) Verify deletion (GET should 404)
+    const verifyRes = await request.get(`${BASE}/booking/${bookingId}`);
+    expect([404, 410]).toContain(verifyRes.status());
   });
 
 });

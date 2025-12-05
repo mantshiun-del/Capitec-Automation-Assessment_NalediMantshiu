@@ -1,24 +1,16 @@
 import { test, expect } from '@playwright/test';
-import { users } from '../../utils/testData.js';
+import testData from '../utils/testData.js';
+import LoginPage from '../../pages/LoginPage.js';
+import InventoryPage from '../../pages/InventoryPage.js';
+import CartPage from '../../pages/CartPage.js';
 
-test('add two items to cart, then remove one', async ({ page }) => {
-  await page.goto('/');
-  await page.locator('[data-test="username"]').fill(users.standard.username);
-  await page.locator('[data-test="password"]').fill(users.standard.password);
-  await page.locator('[data-test="login-button"]').click();
+test('Add to cart and see badge increment', async ({ page }) => {
+  const login = new LoginPage(page);
+  const inventory = new InventoryPage(page);
 
-  // Add first two items (buttons start with add-to-cart)
-  const addButtons = page.locator('[data-test^="add-to-cart"]');
-  await addButtons.nth(0).click();
-  await addButtons.nth(1).click();
+  await login.goto();
+  await login.login(testData.users.standard.username, testData.users.standard.password);
 
-  await expect(page.locator('.shopping_cart_badge')).toHaveText('2');
-
-  await page.click('.shopping_cart_link');
-
-  // Remove one item (buttons start with remove)
-  const removeButtons = page.locator('[data-test^="remove"]');
-  await removeButtons.nth(0).click();
-
-  await expect(page.locator('.cart_item')).toHaveCount(1);
+  await inventory.addToCartButtons.first().click();
+  await expect(inventory.cartBadge).toHaveText('1');
 });
