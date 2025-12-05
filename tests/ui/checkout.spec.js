@@ -1,33 +1,32 @@
-const { test } = require('@playwright/test');
-const { LoginPage } = require('../../pages/LoginPage.js');
-const { InventoryPage } = require('../../pages/InventoryPage.js');
-const { CartPage } = require('../../pages/CartPage.js');
-const { CheckoutPage } = require('../../pages/CheckoutPage.js');
-const checkoutData = require('../../test-data/checkout.json');
+import { test, expect } from '@playwright/test';
+import { users } from '../../utils/testData.js';
 
-test('Add items to cart and complete checkout', async ({ page }) => {
-  const login = new LoginPage(page);
-  const inventory = new InventoryPage(page);
-  const cart = new CartPage(page);
-  const checkout = new CheckoutPage(page);
-
+test('complete checkout flow', async ({ page }) => {
   // Login
-  await login.goto();
-  await login.login('standard_user', 'secret_sauce');
+  await page.goto('/');
+  await page.locator('[data-test="username"]').fill(users.standard.username);
+  await page.locator('[data-test="password"]').fill(users.standard.password);
+  await page.locator('[data-test="login-button"]').click();
 
-  // Inventory management: add items
-  await inventory.addItemByName('Sauce Labs Backpack');
-  await inventory.addItemByName('Sauce Labs Bike Light');
+  // Add one item
+  await page.locator('[data-test^="add-to-cart"]').first().click();
+  await expect(page.locator('.shopping_cart_badge')).toHaveText('1');
 
-  // Go to cart and verify
-  await inventory.gotoCart();
-  await cart.expectItemPresent('Sauce Labs Backpack');
-  await cart.expectItemPresent('Sauce Labs Bike Light');
+  // Cart → Checkout
+  await page.click('.shopping_cart_link');
+  await page.locator('[data-test="checkout"]').click();
 
-  // Checkout with your details
-  await cart.checkout();
-  await checkout.fillDetails(checkoutData.firstName, checkoutData.lastName, checkoutData.postalCode);
-  await checkout.continue();
-  await checkout.finish();
-  await checkout.expectSuccess();
-})
+  // Fill info
+  await page.locator('[data-test="firstName"]').fill('Naledi');
+  await page.locator('[data-test="lastName"]').fill('Mantshiu');
+  await page.locator('[data-test="postalCode"]').fill('2196');
+  await page.locator('[data-test="continue"]').click();
+
+  // Review & finish
+  await expect(page.locator('.summary_total_label')).toContainText('Total');
+  await page.locator('[data-test="finish"]').click();
+
+  // Confirmation
+  await expect(page.locator('.complete-header'))
+    .toHaveText('Thank you for your order!');
+});
