@@ -1,3 +1,4 @@
+// pages/LoginPage.js
 export default class LoginPage {
   /**
    * @param {import('@playwright/test').Page} page
@@ -11,7 +12,7 @@ export default class LoginPage {
   }
 
   async goto() {
-    await this.page.goto('/');
+    await this.page.goto('/'); // baseURL is https://www.saucedemo.com
   }
 
   async login(u, p) {
