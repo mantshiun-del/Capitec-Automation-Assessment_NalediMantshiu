@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+﻿import { test, expect } from '@playwright/test';
 import testData from './testData.js';
 
 test('testData shape and sample values', async () => {

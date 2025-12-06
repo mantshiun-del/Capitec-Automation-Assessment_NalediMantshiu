@@ -13,7 +13,7 @@ export default defineConfig({
   ],
   use: {
     baseURL: 'https://www.saucedemo.com',
-    headless: true,
+    headless: false,
     trace: 'on-first-retry'
   },
   projects: [
