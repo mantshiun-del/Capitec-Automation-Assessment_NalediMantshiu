@@ -1,12 +1,13 @@
-import { test, expect } from '@playwright/test';
-import testData from './testData.js';
-
-test('testData shape and sample values', async () => {
-  // users
-  expect(testData.users.standard.username).toBe('standard_user');
-  expect(testData.users.standard.password).toBe('secret_sauce');
-
-  // checkout
-  expect(testData.checkout.firstName).toBe('Naledi');
-  expect(testData.checkout.postalCode).toBe('2196');
-});
+﻿export default {
+  users: {
+    standard: { username: "standard_user", password: "secret_sauce" },
+    locked:   { username: "locked_out_user", password: "secret_sauce" },
+    problem:  { username: "problem_user",    password: "secret_sauce" },
+    visual:   { username: "visual_user",     password: "secret_sauce" }
+  },
+  checkout: {
+    firstName: "Naledi",
+    lastName:  "Mantshiu",
+    postalCode: "2196"
+  }
+};
