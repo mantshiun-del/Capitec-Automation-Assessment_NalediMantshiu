@@ -1,4 +1,6 @@
-﻿name: Playwright UI + API tests 
+﻿
+# .github/workflows/playwright.yml
+name: Playwright UI + API tests
 
 on:
   push:
@@ -17,15 +19,17 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 18
+          cache: 'npm'
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Install Playwright browsers
+      - name: Install Playwright browsers + OS deps
         run: npx playwright install --with-deps
 
+      # ✅ IMPORTANT: Use --project=chromium (NOT --browser=chromium)
       - name: Run Playwright tests (headless on CI)
-        run: npx playwright test --reporter=list,html,monocart-reporter
+        run: npx playwright test --project=chromium --workers=2 --reporter=list,html,monocart-reporter
         env:
           CI: true
 
@@ -36,4 +40,10 @@ jobs:
           name: monocart-report
           path: monocart-report
 
-
+      # Optional: Upload HTML report as well (handy for debugging)
+      - name: Upload HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-html-report
+          path: playwright-report
