@@ -23,10 +23,10 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 
-      - name: Run all tests
-        run: npm run test
+      - name: Run all tests (headless forced)
         env:
           CI: true
+        run: npx playwright test --browser=chromium --workers=2 --reporter=list,html,monocart-reporter
 
       - name: Upload monocart report
         if: always()
